@@ -41,7 +41,7 @@ Download and save
 ### Usage 
 
 The driver script is `startWorkflow.sh` and a standard execution with paired end illumina reads would be:  
-`startWorkflow.sh -f sample1_R1.txt -r sample2_R2.fastq -o outputDir`
+`startWorkflow.sh -f sample1_R1.fastq -r sample2_R2.fastq -o outputDir`
 
 The configuration file `prepareEnvironment.sh` is specific to CFSAN's computing environment and enumerates the 
 dependencies the other scripts assume that all referred
