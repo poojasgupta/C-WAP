@@ -34,10 +34,6 @@ The process includes the following:
 * [Freyja](https://github.com/andersen-lab/Freyja)
 * [wkhtmltopdf](https://github.com/wkhtmltopdf)
 
-The configuration file `prepareEnvironment.sh` enumerates the 
-dependencies the other scripts assume that all referred
-executables are available in the search path. 
-
 ### Installation
 
 Download and save
@@ -47,6 +43,9 @@ Download and save
 The driver script is `startWorkflow.sh` and a standard execution with paired end illumina reads would be:  
 `startWorkflow.sh -f sample1_R1.txt -r sample2_R2.fastq -o outputDir`
 
+The configuration file `prepareEnvironment.sh` is specific to CFSAN's computing environment and enumerates the 
+dependencies the other scripts assume that all referred
+executables are available in the search path. 
 ### Output
 
 C-WAP produces a number of files from the various processing steps.  
