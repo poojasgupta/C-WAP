@@ -12,6 +12,7 @@ outputDirectory = sys.argv[2]
 GENOME_SIZE = 29903
 quality = np.zeros(GENOME_SIZE)
 readDepth = np.zeros(GENOME_SIZE)
+numTermini = np.zeros(GENOME_SIZE)
 
 # Import the pile-up file and record the coverage and average quality per position
 with open(pileupFilename) as infile:
@@ -32,6 +33,25 @@ with open(pileupFilename) as infile:
             # PHRED to INT conversion rule:
             # def phred2int(x): return ord(x)-33
             quality[pos] = np.mean([ord(letter) for letter in row[5]]) - 33
+        
+        # Count the number of read termini at this location
+        # This happens by checking for ^ and $ signs in the pileup file.
+        numTermini[pos] = row[4].count('^') + row[4].count('$')
+
+
+# Calculate moving averages to smooth out patterns
+window=1000
+
+qualityMA = np.convolve(quality, np.ones(window)/window, 'same')
+qualityMA[0:window] = np.nan
+qualityMA[-window:] = np.nan
+
+readDepthMA = np.convolve(readDepth, np.ones(window)/window, 'same')
+readDepthMA[0:window] = np.nan
+readDepthMA[-window:] = np.nan
+
+
+numTerminiMA = np.convolve(numTermini, np.ones(window)/window, 'same')
 
 
 # Import the list of uncovered genome regions due to kit design
@@ -57,6 +77,8 @@ plt.rcParams.update({'font.size': 14})
 
 plt.plot(posIdx, quality, '.', color=FDAblue)
 plt.plot(posIdx[quality < 30], quality[quality < 30], '.', color='k')
+plt.plot(posIdx, qualityMA, '-', color='m')
+
 
 plt.xlabel('Genome position (kb)')
 plt.ylabel('Average read quality')
@@ -106,17 +128,21 @@ plt.savefig(outputDirectory + '/qualityHistogram.png', dpi=200)
 plt.close()
 
 
+
 #################################################################
-# Generate a plot for sequence coverage vs pos and save in a file
-# If coverage is too high, scale the axes for better view
-if np.mean(readDepth) > 500:
-    plt.plot(posIdx, readDepth/1000, '.', color=FDAblue)
-    plt.plot(posIdx[readDepth < 100],
-             readDepth[readDepth < 100]/1000, '.', color='k')
+# Generate a plot for sequencing depth vs pos and save in a file
+plt.plot(posIdx, readDepth, '.', color=FDAblue)
+plt.plot(posIdx[readDepth < 10], readDepth[readDepth < 10], '.', color='k')
+plt.plot(posIdx, readDepthMA, '-', color='m')
+
+# If coverage is too high, scale the axes for a better view
+if np.mean(readDepth) > 1000:
     plt.ylabel('Coverage depth (1000)')
+    locs, labels = plt.yticks()
+    plt.yticks(locs, (locs/1000).astype('int') )
 else:
-    plt.plot(posIdx, readDepth, '.', color=FDAblue)
     plt.ylabel('Coverage depth')
+
 
 plt.xlabel('Genome position (kb)')
 plt.xlim([0, GENOME_SIZE+1])
@@ -177,6 +203,32 @@ plt.ylabel('Frequency')
 plt.yticks([])
 plt.savefig(outputDirectory + '/depthHistogram.png', dpi=200)
 plt.close()
+
+
+
+#################################################################
+# Generate a plot for the number of 5'/3' termini vs pos and save in a file
+plt.plot(posIdx, numTermini, '.', color=FDAblue)
+plt.plot(posIdx, numTerminiMA, '-', color='m')
+
+
+# If coverage is too high, scale the axes for a better view
+locs, labels = plt.yticks()
+if locs[-1] > 2000:
+    plt.ylabel('#5\'/3\' termini per kb (1000)')
+    plt.yticks(locs, (locs/1000).astype('int') )
+else:
+    plt.ylabel('#5\'/3\' termini per kb')
+
+
+plt.xlabel('Genome position (kb)')
+plt.xlim([0, GENOME_SIZE+1])
+plt.xticks(np.arange(0, GENOME_SIZE, 5000), ["%d" % (
+    x/1000) for x in np.arange(0, GENOME_SIZE, 5000)])
+
+plt.savefig(outputDirectory + '/terminiDensity.png', dpi=200)
+plt.close()
+
 
 
 #################################################################
