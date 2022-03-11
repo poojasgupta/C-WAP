@@ -48,7 +48,7 @@ Download and save
 
 ### Usage 
 
-The driver script is `startWorkflow.sh` and a standard execution with paired end illumina reads would be:  
+The driver script is `startWorkflow.nf` and a standard execution with paired end illumina reads would be:  
 `startWorkflow.nf --platform i --primers path/to/bed --in path/to/fastq/ --out path/to/outputDir`
 
 
